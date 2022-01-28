@@ -1,0 +1,10 @@
+# Folders to ignore
+.vscode
+build
+grpc
+
+# Exec to ignore
+cln_cen
+cln_par
+svc_cen
+svc_par
