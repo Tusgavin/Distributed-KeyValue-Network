@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+message ServerInfo {
+   string serverAddress = 1;
+   repeated int32 keys = 2;
+}
+
+message  NumberOfProcessedKeys {
+   int32 processedKeys = 1;
+}
+
+message SearchKey {
+   int32 key = 1;
+}
+
+message ServerAddress {
+   string serverAddress = 1;
+}
+
+message NumberOfRegisteredKeys {
+   int32 registeredKeys = 1;
+}
+
+message NoParameterKeyMap {}
+
+service KeyMap {
+   rpc Register (ServerInfo) returns (NumberOfProcessedKeys) {}
+   rpc Mapping (SearchKey) returns (ServerAddress) {}
+   rpc EndExecution (NoParameterKeyMap) returns (NumberOfRegisteredKeys) {}
+}
