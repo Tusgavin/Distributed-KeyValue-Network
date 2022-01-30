@@ -26,33 +26,23 @@ compile_protos:
 	protoc -I ./protos --grpc_out=./build/gen --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ./protos/map_server.proto
 	protoc --proto_path=protos --cpp_out=build/gen protos/map_server.proto
 
-run_cli_pares:
-	compile_protos
-	compile_cli_pares
+run_cli_pares: compile_protos compile_cli_pares
 	clear
 	sudo ./cln_par $(arg)
 
-run_serv_pares_1:
-	compile_protos
-	make compile_serv_pares
+run_serv_pares_1: compile_protos compile_serv_pares
 	clear
 	sudo ./svc_par $(arg)
 
-run_serv_pares_2:
-	compile_protos
-	make compile_serv_pares
+run_serv_pares_2: compile_protos compile_serv_pares
 	clear
 	sudo ./svc_par $(arg) $(flag)
 
-run_serv_central:
-	compile_protos
-	make compile_serv_cen
+run_serv_central: compile_protos compile_serv_cen
 	clear
 	sudo ./svc_cen $(arg)
 
-run_cli_central:
-	compile_protos
-	make compile_cli_cen
+run_cli_central: compile_protos compile_cli_cen
 	clear	
 	sudo ./cln_cen $(arg)
 
