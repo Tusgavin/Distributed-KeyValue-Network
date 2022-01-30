@@ -79,7 +79,7 @@ class KeyValueImpl final : public KeyValue::Service {
 
       const auto [newPairIterator, success] = this->keyValueTable.insert({req->key(), req->value()});
 
-      (success) ? res->set_status(1) : res->set_status(-1);
+      (success) ? res->set_status(0) : res->set_status(-1);
 
       return grpc::Status::OK;
    };
@@ -173,6 +173,7 @@ class KeyValueImpl final : public KeyValue::Service {
 int main(int argc, char* argv[]) {
    std::string port = std::string(argv[1]);
    PORT = port;
+   ARGS = argc;
    std::string address = std::string("0.0.0.0:") + port;
 
    KeyValueImpl service;
@@ -182,7 +183,6 @@ int main(int argc, char* argv[]) {
    builder.RegisterService(&service);
 
    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-   std::cout << ">> Running server on " << address << "..." << std::endl;
 
    /* Cria função lambda para rodar o sevrer */
    auto serverWait = [&]() {

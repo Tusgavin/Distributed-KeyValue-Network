@@ -98,7 +98,6 @@ int main(int argc, char* argv[]) {
    builder.RegisterService(&service);
 
    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-   std::cout << ">> Running center server on " << address << "..." << std::endl;
 
    /* Cria função lambda para rodar o sevrer */
    auto serverWait = [&]() {

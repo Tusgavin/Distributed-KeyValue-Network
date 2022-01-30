@@ -53,6 +53,8 @@ public:
          }
 
          std::cout << res.serveraddress() << ":" << _res.value() << std::endl;
+      } else {
+         std::cout << "" << std::endl;
       }
    }
 
@@ -106,8 +108,6 @@ int main(int argc, char* argv[]) {
    auto channel = grpc::CreateChannel(address, grpc::InsecureChannelCredentials());
 
    MapServerClient mapServerClient(channel);
-
-   std::cout << ">> Client connected on " << address << "..." << std::endl;
 
    while (1) {
       std::string command;

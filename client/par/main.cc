@@ -135,8 +135,6 @@ int main(int argc, char* argv[]) {
 
    KeyValueClient keyValueClient(channel);
 
-   std::cout << ">> Client connected on " << address << "..." << std::endl;
-
    
    /* Lê a entrada do usuário até digite o comando de encerrar o servidor */
    while (1) {
