@@ -19,6 +19,11 @@ private:
 public:
    KeyValueClient(std::shared_ptr<grpc::ChannelInterface> channel) : stub_(KeyValue::NewStub(channel)) {}
 
+   /**
+    * @brief Mmonta a mensagem de requisição e faz chamada do procedimento remoto InsertKeyValue do servidor e imprime o status
+    * 
+    * @param requestData Struct com os campos da mensagem KeyValuePair
+    */
    void InsertKeyValue(const KeyValuePairStruct& requestData) {
       KeyValuePair req;
       req.set_key(requestData.key);
@@ -36,6 +41,11 @@ public:
       std::cout << res.status() << std::endl;
    }
 
+   /**
+    * @brief Consulta o valor de uma chave em um servidor por meio do procedimento CheckoutValue e imprime o valor retornado
+    * 
+    * @param key Chave a ser consultada
+    */
    void CheckoutValue(const int& key) {
       KeyToBeChecked req;
       req.set_key(key);
@@ -52,6 +62,12 @@ public:
       std::cout << res.value() << std::endl;
    }
 
+   /**
+    * @brief Faz uma requisição para o servidor de pares enviar suas chaves para o servidor central e imprime o status
+    * retornado
+    * 
+    * @param serviceId Endereço do servidor central
+    */
    void Activate(const std::string& serviceId) {
       ServiceIdentifier req;
       req.set_serviceidentifier(serviceId);
@@ -68,6 +84,10 @@ public:
       std::cout << res.status() << std::endl;
    }
 
+   /**
+    * @brief Faz uma requisição para encerrar o servidor, imprime o status retornado
+    * 
+    */
    void EndExecution() {
       NoParameterKeyValue req;
 
@@ -84,6 +104,12 @@ public:
    }
 };
 
+/**
+ * @brief Lê o comando escrito pelo usuário e separa cada valor que está entre as vírgulas
+ * 
+ * @param stringfiedCommand Comando digitado pelo usuário (e.g. I,1,valor1)
+ * @return std::vector<std::string> (e.g. ["I", "1", "valor1"])
+ */
 std::vector<std::string> parseCommand(std::string stringfiedCommand) {
    const std::string delimiter = ",";
    size_t pos = 0;
@@ -111,6 +137,8 @@ int main(int argc, char* argv[]) {
 
    std::cout << ">> Client connected on " << address << "..." << std::endl;
 
+   
+   /* Lê a entrada do usuário até digite o comando de encerrar o servidor */
    while (1) {
       std::string command;
       std::getline(std::cin, command);
@@ -118,24 +146,24 @@ int main(int argc, char* argv[]) {
       std::vector<std::string> parsedCommand = parseCommand(command);
 
       if (parsedCommand[0] == "I") {
-         // Insert value parsedCommand[2] in key parsedCommand[1]
+         // Insere o valor parsedCommand[2] na chave parsedCommand[1]
          KeyValuePairStruct newKeyValuePair;
          newKeyValuePair.key = std::stoi(parsedCommand[1]);
          newKeyValuePair.value = std::string(parsedCommand[2]);
 
          keyValueClient.InsertKeyValue(newKeyValuePair);
       } else if (parsedCommand[0] == "C") {
-         // Checkout value stored in key parsedCommand[1]
+         // Checa o valor na chave parsedCommand[1]
          const int key = std::stoi(parsedCommand[1]);
 
          keyValueClient.CheckoutValue(key);
       } else if (parsedCommand[0] == "A") {
-         // Activate service with id parsedCommand[1]
+         // Ativa o serviço de parsedCommand[1]
          const std::string serviceId = std::string(parsedCommand[1]);
 
          keyValueClient.Activate(serviceId);
       } else if (parsedCommand[0] == "T") {
-         // End server
+         // Termina servidor
          keyValueClient.EndExecution();
 
          return 0;

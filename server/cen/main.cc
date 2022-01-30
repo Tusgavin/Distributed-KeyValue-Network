@@ -11,12 +11,18 @@
 #include "../../build/gen/map_server.grpc.pb.h"
 #include "../../build/gen/map_server.pb.h"
 
-/* Stores value that will be used in the future by another thread */
+/* Armazena o valor que será usado no futuro por outra thread */
 std::promise<void> shutdownServerReq;
 
 class MapServerImpl final : public KeyMap::Service {
    std::map<int, std::string> keyAddressTable;
 
+   /**
+    * @brief Insere ou atualiza o pares de chave-servidor no dicionário de mapeamento de servidores.
+    * Ajusta a response para o numero de pares inseridos/atualizados.
+    * 
+    * @return grpc::Status 
+    */
    grpc::Status Register(grpc::ServerContext* context, const ServerInfo* req, NumberOfProcessedKeys* res) {
 #if DEBUG
       std::cout << ">> " << context->peer() << " - Called remote function Register()" << std::endl;
@@ -45,6 +51,12 @@ class MapServerImpl final : public KeyMap::Service {
       return grpc::Status::OK;
    };
 
+   /**
+    * @brief Busca pelo valor do endereço de servidor correspondente à chave enviada na requisição. Se na chave não
+    * existir no dicionário, o endereço na response é "".
+    * 
+    * @return grpc::Status 
+    */
    grpc::Status Mapping(grpc::ServerContext* context, const SearchKey* req, ServerAddress* res) {
 #if DEBUG
       std::cout << ">> " << context->peer() << " - Called remote function Mapping()" << std::endl;
@@ -56,6 +68,11 @@ class MapServerImpl final : public KeyMap::Service {
       return grpc::Status::OK;
    };
 
+   /**
+    * @brief Termina a execução do servidor por meio de uma chamada de procedimento feita por um cliente
+    * 
+    * @return grpc::Status 
+    */
    grpc::Status EndExecution(grpc::ServerContext* context, const NoParameterKeyMap* req, NumberOfRegisteredKeys* res) {
 #if DEBUG
       std::cout << ">> " << context->peer() << " - Called remote function Activate()" << std::endl;
@@ -63,6 +80,7 @@ class MapServerImpl final : public KeyMap::Service {
 
       res->set_registeredkeys(keyAddressTable.size());
 
+      /* Faz um ajuste de valor na promisse shutdownServerReq para ativar shutdownServerFuture e desbloquear o código na thread principal */
       shutdownServerReq.set_value();
       
       return grpc::Status::OK;
@@ -82,24 +100,24 @@ int main(int argc, char* argv[]) {
    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
    std::cout << ">> Running center server on " << address << "..." << std::endl;
 
-   /* Create lambda function to run server */
+   /* Cria função lambda para rodar o sevrer */
    auto serverWait = [&]() {
       server->Wait();
    };
 
-   /* shutdownServerFuture will receive the value from the child thread */
+   /* shutdownServerFuture vai receber um valor da thread filha */
    auto shutdownServerFuture = shutdownServerReq.get_future();
 
-   /* Run the lambda function in child thread */
+   /* Roda a função lambda em uma thread filha */
    std::thread serverThread(serverWait);
 
-   /* Blocks until the child thread gives the value */
+   /* Bloqueia até que a thread filha ajuste o valor de shutdownServerFuture */
    shutdownServerFuture.wait();
 
-   /* Shutdown server after 'shutdownServerFuture' gets the value */
+   /* Encerra o server */
    server->Shutdown();
 
-   /* Blocks until the child thread ends */
+   /* Bloqueia até que a thread filha encerre */
    serverThread.join();
 
    return 0;

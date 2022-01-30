@@ -16,6 +16,12 @@ private:
 public:
    MapServerClient(std::shared_ptr<grpc::ChannelInterface> channel) : stub_(KeyMap::NewStub(channel)) {}
 
+   /**
+    * @brief Busca pelo servidor de pares com a chave por meio do servidor central. Se a chave existir, faz uma requisição
+    * para o endereço do servidor de pares retornado e imprime o valor
+    *  
+    * @param key Chave a ser consultada
+    */
    void CheckoutServerAddressWithKey(const int& key) {
       SearchKey req;
       req.set_key(key);
@@ -28,7 +34,8 @@ public:
       if (!status.ok()) {
          std::cout << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
       }
-
+      
+      /* Se o servidor dor igual "", significa que não existe a chave */
       if (res.serveraddress() != "") {
          auto channel = grpc::CreateChannel(res.serveraddress(), grpc::InsecureChannelCredentials());
          std::unique_ptr<KeyValue::Stub> stub_(KeyValue::NewStub(channel));
@@ -49,6 +56,10 @@ public:
       }
    }
 
+   /**
+    * @brief Faz uma requisição para encerrar o servidor central, imprime o número de chaves armazenado
+    * 
+    */
    void EndExecution() {
       NoParameterKeyMap req;
 
@@ -65,6 +76,12 @@ public:
    }
 };
 
+/**
+ * @brief Lê o comando escrito pelo usuário e separa cada valor que está entre as vírgulas
+ * 
+ * @param stringfiedCommand Comando digitado pelo usuário (e.g. I,1,valor1)
+ * @return std::vector<std::string> (e.g. ["I", "1", "valor1"])
+ */
 std::vector<std::string> parseCommand(std::string stringfiedCommand) {
    const std::string delimiter = ",";
    size_t pos = 0;
@@ -99,12 +116,12 @@ int main(int argc, char* argv[]) {
       std::vector<std::string> parsedCommand = parseCommand(command);
 
       if (parsedCommand[0] == "C") {
-         // Checkout value stored in key parsedCommand[1]
+         // Consulta o endereço que guarda a chave parsedCommand[1]
          const int key = std::stoi(parsedCommand[1]);
 
          mapServerClient.CheckoutServerAddressWithKey(key);
       }  else if (parsedCommand[0] == "T") {
-         // End server
+         // Termina servidor
          mapServerClient.EndExecution();
 
          return 0;
